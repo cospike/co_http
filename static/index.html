@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
-	<title>小彭老师在线聊天室</title>
+	<title>在线聊天室</title>
 	<meta charset="UTF-8">
     <style>
         .message p {
@@ -52,8 +52,8 @@
     </head>
     <body>
         <div id="container">
-            <h1>小彭老师在线聊天室</h1>
-            <p class="brief">小彭老师自主研发的一款现代 C++ 全栈聊天服务器 | <a href="https://github.com/archibate/co_http">GitHub 仓库</a></p>
+            <h1>在线聊天室</h1>
+            <p class="brief">现代 C++ 全栈聊天服务器 | <a href="https://github.com/archibate/co_http">GitHub 仓库</a></p>
             <div class="message-list" id="messages"></div>
             <div class="input-bar">
                 <input class="input-user" type="text" id="user" placeholder="你的昵称"/>
@@ -106,7 +106,7 @@
                         var extra_class = '';
                         if (message.user == current_user)
                         extra_class = ' message-current-user';
-                        $("#messages").append(`<div class="message"><p class="message-user${extra_class}">${escapeHtml(message.user)}:</p><p class="message-content">${escapeHtml(message.content)}<p></div>`);
+                        $("#messages").append(`<div class="message"><p class="message-user${extra_class}">${escapeHtml(message.user)}:</p><p class="message-content">${escapeHtml(message.content)}</p></div>`);
                     }
                     poll();
                 });
@@ -115,4 +115,345 @@
         });
         </script>
     </body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>在线聊天室 - 高级版</title>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* --- 全局与主题 --- */
+        :root {
+            --primary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --my-message-bg: #007bff;
+            --my-message-color: white;
+            --other-message-bg: #e9ecef;
+            --other-message-color: #212529;
+            --system-message-color: #6c757d;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            margin: 0;
+            height: 100vh;
+            padding: 10px;
+        }
+
+        /* --- 容器 --- */
+        #container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+            max-height: 900px;
+        }
+        
+        header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+
+        /* --- 消息列表 --- */
+        .message-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .message-list::-webkit-scrollbar { width: 6px; }
+        .message-list::-webkit-scrollbar-track { background: transparent; }
+        .message-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+        /* --- 新消息动画 --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message { animation: fadeIn 0.3s ease-out; }
+
+        /* --- 单条消息布局 (默认靠左) --- */
+        .message {
+            display: flex;
+            margin-bottom: 1.25rem;
+            max-width: 85%;
+            align-self: flex-start;
+            align-items: flex-end; 
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+        .message-body {
+            display: flex;
+            flex-direction: column;
+        }
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+        .message-user { font-weight: bold; font-size: 0.9rem; }
+        .timestamp { font-size: 0.75rem; color: #999; margin-left: 8px; }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px; /* 所有角都是圆的 */
+            word-wrap: break-word;
+            background-color: var(--other-message-bg);
+            color: var(--other-message-color);
+        }
+        .message-content p { margin: 0; }
+        .message-content img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 12px;
+            display: block;
+        }
+
+        /* --- 对称的消息样式 (当前用户) --- */
+        .message.is-current-user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .is-current-user .avatar {
+            margin-left: 10px;
+            margin-right: 0;
+        }
+        .is-current-user .message-body {
+            align-items: flex-end;
+        }
+        .is-current-user .message-header {
+            flex-direction: row-reverse;
+        }
+        .is-current-user .timestamp {
+            margin-right: 8px;
+            margin-left: 0;
+        }
+        .is-current-user .message-content {
+            background-color: var(--my-message-bg);
+            color: var(--my-message-color);
+        }
+
+        /* --- 系统消息 --- */
+        .system-message {
+            justify-content: center;
+            align-self: center;
+            background-color: var(--medium-gray);
+            color: var(--system-message-color);
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 1.25rem;
+            max-width: initial;
+        }
+        
+        /* --- 输入区域 (无变化) --- */
+        .input-bar { display: flex; padding: 1rem; border-top: 1px solid var(--border-color); gap: 10px; background-color: #fff; }
+        .input-user, .input-content { border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 1em; outline: none; transition: border-color 0.2s; }
+        .input-user:focus, .input-content:focus { border-color: var(--primary-color); }
+        .input-user { width: 25%; }
+        .input-user:disabled { background-color: var(--light-gray); cursor: not-allowed; opacity: 0.8; }
+        .input-content { flex: 1; }
+        .send-button, .image-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.5rem; transition: all 0.2s; flex-shrink: 0; }
+        .send-button { background-color: var(--primary-color); }
+        .image-button { background-color: #28a745; }
+        .send-button:hover, .image-button:hover { filter: brightness(1.1); }
+        .send-button:active, .image-button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <header>
+            <h1>在线聊天室</h1>
+        </header>
+        
+        <div class="message-list" id="messages"></div>
+        
+        <div class="input-bar">
+            <input class="input-user" type="text" id="user" placeholder="输入你的昵称..." autocomplete="off"/>
+            <input class="input-content" type="text" id="content" placeholder="输入消息..." autocomplete="off"/>
+            <button class="image-button" id="send-image" title="发送图片">🖼️</button>
+            <button class="send-button" id="send" title="发送">➤</button>
+            <input type="file" id="image-file" accept="image/*" style="display: none;"/>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        var messages_first = 0;
+        var currentUser = null; // 用于存储当前用户名
+        var userColors = {}; // 存储每个用户的头像颜色
+
+        // --- 核心逻辑 ---
+
+        // 锁定用户名，实现“登录”
+        function loginUser() {
+            var username = $("#user").val().trim();
+            if (!username) {
+                alert("在发送消息前，必须先输入一个昵称！");
+                return false;
+            }
+            currentUser = username;
+            $("#user").prop('disabled', true);
+            renderSystemMessage(`您已加入聊天，昵称为 "${currentUser}"`);
+            return true;
+        }
+
+        function sendTextMessage() {
+            if (!currentUser && !loginUser()) return; // 如果未登录，则尝试登录
+            
+            var content = $("#content").val().trim();
+            if (!content) { alert("消息不能为空"); return; }
+
+            var messageData = { user: currentUser, type: 'text', content: content };
+            $.post("send", JSON.stringify(messageData), function() {
+                $("#content").val('').focus(); // 发送成功后清空并重新聚焦
+            }).fail(function() { alert("消息发送失败。"); });
+        }
+
+        function sendImageMessage(file) {
+            if (!currentUser && !loginUser()) return;
+            
+            var formData = new FormData();
+            formData.append('user', currentUser);
+            formData.append('type', 'image');
+            formData.append('image', file);
+
+            $.ajax({
+                url: 'upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    console.log("/upload (image) response:", data);
+                },
+                error: function(jqXHR, textStatus) {
+                    alert("图片上传失败: " + textStatus);
+                }
+            });
+        }
+
+        // --- 渲染逻辑 ---
+
+        function getAvatar(username) {
+            if (!userColors[username]) {
+                // 根据用户名生成一个稳定的颜色
+                let hash = 0;
+                for (let i = 0; i < username.length; i++) {
+                    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const h = hash % 360;
+                userColors[username] = `hsl(${h}, 70%, 80%)`;
+            }
+            const initial = username.charAt(0).toUpperCase();
+            return `<div class="avatar" style="background-color: ${userColors[username]}">${escapeHtml(initial)}</div>`;
+        }
+        
+        function formatTimestamp(date) {
+            return date.toTimeString().slice(0, 5);
+        }
+
+        function renderSystemMessage(text) {
+            $("#messages").append(`<div class="message system-message">${escapeHtml(text)}</div>`);
+            scrollToBottom();
+        }
+
+        function renderMessage(message) {
+            const sideClass = (message.user === currentUser) ? 'is-current-user' : 'is-other-user';
+            const avatarHtml = getAvatar(message.user);
+            const headerHtml = `
+                <div class="message-header">
+                    <span class="message-user">${escapeHtml(message.user)}</span>
+                    <span class="timestamp">${formatTimestamp(new Date())}</span>
+                </div>`;
+            
+            let contentHtml = '';
+            if (message.type === 'image') {
+                contentHtml = `<div class="message-content"><img src="${escapeHtml(message.content)}" alt="图片"></div>`;
+            } else {
+                contentHtml = `<div class="message-content"><p>${escapeHtml(message.content)}</p></div>`;
+            }
+            
+            const messageHtml = `
+                <div class="message ${sideClass}">
+                    ${avatarHtml}
+                    <div class="message-body">
+                        ${headerHtml}
+                        ${contentHtml}
+                    </div>
+                </div>`;
+            
+            $("#messages").append(messageHtml);
+        }
+
+        function scrollToBottom() {
+            var messagesList = $("#messages");
+            messagesList.scrollTop(messagesList[0].scrollHeight);
+        }
+
+        // --- 轮询与事件绑定 ---
+        
+        function poll() {
+            $.post("recv", JSON.stringify({first: messages_first}), function(data) {
+                try {
+                    var submessages = JSON.parse(data);
+                    if (submessages && submessages.length > 0) {
+                        submessages.forEach(renderMessage);
+                        messages_first += submessages.length;
+                        scrollToBottom();
+                    }
+                } catch (e) { console.error("解析/recv数据失败:", data, e); }
+                poll();
+            }).fail(function() {
+                console.warn("与服务器断开，5秒后重试...");
+                setTimeout(poll, 1500);
+            });
+        }
+        
+        function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        
+        // --- 初始化 ---
+        $("#send").click(sendTextMessage);
+        $("#content").keypress(function(e) { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
+        $("#send-image").click(function() { $("#image-file").click(); });
+        $("#image-file").change(function() { if (this.files[0]) sendImageMessage(this.files[0]); $(this).val(''); });
+        
+        poll();
+    });
+    </script>
+</body>
 </html>

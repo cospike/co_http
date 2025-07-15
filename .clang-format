@@ -1,0 +1,23 @@
+# 基于一个预设的样式，例如 LLVM, Google, Chromium, Mozilla, WebKit
+# 你可以根据自己的喜好选择一个作为基础
+BasedOnStyle: LLVM
+
+# --- 核心配置：使用 Tab 进行缩进 ---
+# UseTab:
+#   - Never:      从不使用 Tab (所有缩进都是空格)
+#   - ForIndentation: 只在行首缩进时使用 Tab，对齐时仍使用空格 (常用)
+#   - ForContinuationAndIndentation: 在缩进和对齐时都使用 Tab
+#   - Always:     只要能用 Tab 就用 Tab (最符合你的要求)
+UseTab: Always
+
+# 缩进的宽度
+# 当 UseTab 设置为非 Never 时，这通常也代表一个 Tab 字符的视觉宽度
+IndentWidth: 4
+
+# Tab 字符本身的宽度，通常与 IndentWidth 保持一致
+TabWidth: 4
+
+# 其他你可能感兴趣的配置
+# ColumnLimit: 120  # 行最大长度
+# AllowShortFunctionsOnASingleLine: None # 不允许短函数写在一行
+# ... 更多配置请参考 clang-format 官方文档
